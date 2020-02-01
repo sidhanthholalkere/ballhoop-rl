@@ -67,11 +67,11 @@ def update_free(state, t_i):
     th_out = th + params.h * th_dot
     Dth_out = Dth + params.h * Dth_dot
     phi_out = phi + params.h * phi_dot
-    Dphi_dot = Dphi + params.h * Dphi_dot
+    Dphi_out = Dphi + params.h * Dphi_dot
     r_out = r + params.h * r_dot
-    Dr_dot = Dr + params.h * Dr_dot
+    Dr_out = Dr + params.h * Dr_dot
     psi_out = psi + params.h * psi_dot
-    Dpsi_dot = Dpsi + params.h * Dpsi_dot
+    Dpsi_out = Dpsi + params.h * Dpsi_dot
     mode = 2
 
     return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out])
