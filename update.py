@@ -1,5 +1,6 @@
 import params
 import numpy as np
+import transition
 
 # state is a 9-d vector
 # it goes th Dth psi Dpsi r Dr phi Dphi mode
@@ -72,7 +73,7 @@ def update_free(state, t_i):
     Dr_out = Dr + params.h * Dr_dot
     psi_out = psi + params.h * psi_dot
     Dpsi_out = Dpsi + params.h * Dpsi_dot
-    mode = 2
+    mode_out = 2
 
     return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out])
 
@@ -106,7 +107,35 @@ def update_inner(state, t_i):
     Dr_out = 0
     phi_out = -(th_out - psi_out) * (params.Rui / params.Rb) # FIND THE CORRECT Ri
     Dphi_out = -(Dth_out - Dpsi_out) * (params.Rui / params.Rb)
-    mode = 3
+    mode_out = 3
 
     return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out])
 
+def update_all(state, t_i):
+    '''
+    Updates the state anywhere
+    '''
+    # check to see if the state should transition
+    if state[8] == 1:
+        state = transition.outer_to_free(state)
+        
+    if state[8] == 2:
+        state = transition.free_to_outer(state)
+        
+    if state[8] == 2:
+        state = transition.free_to_inner(state)
+        
+    if state[8] == 3:
+        state = transition.inner_to_free(state)
+     
+    # update the state based on the meta-state
+    if state[8] == 1:
+        state = update_outer(state, t_i)
+        
+    if state[8] == 2:
+        state = update_free(state, t_i)
+        
+    if state[8] == 3:
+        state = update_inner(state, t_i)
+        
+    return state
