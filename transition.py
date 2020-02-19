@@ -4,7 +4,7 @@ import numpy as np
 # state is a 9-d vector
 # it goes th Dth psi Dpsi r Dr phi Dphi mode
 
-def outer_to_free(state, eps=-0.25, debug=False):
+def outer_to_free(state, eps=0.3, debug=False):
 
     assert state[8] == 1
 

@@ -3,7 +3,7 @@
 import numpy as np
 
 # h is the timestep in seconds
-h = 0.002
+h = 0.001
 
 # Physical Parameters
 R_oring = 1.5e-3 # diameter of the outer ring
