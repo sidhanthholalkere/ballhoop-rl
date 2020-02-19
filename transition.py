@@ -4,7 +4,7 @@ import numpy as np
 # state is a 9-d vector
 # it goes th Dth psi Dpsi r Dr phi Dphi mode
 
-def outer_to_free(state, eps=-0.20):
+def outer_to_free(state, eps=-0.25, debug=False):
 
     assert state[8] == 1
 
@@ -18,8 +18,14 @@ def outer_to_free(state, eps=-0.20):
     Dphi = state[7]
     mode = state[8]
 
-    if (-params.g * np.cos(psi) - (params.Ro - params.Rb) * Dpsi**2) > eps:
+    gamma = -params.g * np.cos(psi) - (params.Ro - params.Rb) * (Dpsi ** 2)
+
+    if debug:
+        print(f'outer_to_free_gamma: {gamma}')
+
+    if gamma > eps:
         
+        print('transitioning OUTER to FREE')
         th_out = th
         Dth_out = Dth
         psi_out = psi
@@ -34,7 +40,7 @@ def outer_to_free(state, eps=-0.20):
 
     return state
         
-def free_to_outer(state, eps=0.):
+def free_to_outer(state, eps=1e-5, debug=False):
 
     assert state[8] == 2
 
@@ -48,8 +54,13 @@ def free_to_outer(state, eps=0.):
     Dphi = state[7]
     mode = state[8]
 
-    if r - params.Ro + params.Rb > eps:
+    gamma = r - params.Ro + params.Rb
 
+    if debug:
+        print(f'free_to_outer_gamma: {gamma}')
+
+    if gamma > eps:
+        print('transitioned from FREE to OUTER')
         th_out = th
         Dth_out = Dth
         psi_out = psi

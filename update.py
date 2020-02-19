@@ -111,21 +111,22 @@ def update_inner(state, t_i):
 
     return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out])
 
-def update_all(state, t_i):
+def update_all(state, t_i, debug=False):
     '''
     Updates the state anywhere
     '''
     # check to see if the state should transition
     if state[8] == 1:
-        state = transition.outer_to_free(state)
+        state = transition.outer_to_free(state, debug=debug)
         
-    if state[8] == 2:
-        state = transition.free_to_outer(state)
+    elif state[8] == 2:
+        state = transition.free_to_outer(state, debug=debug)
+        try:
+            state = transition.free_to_inner(state)
+        except AssertionError:
+            pass
         
-    if state[8] == 2:
-        state = transition.free_to_inner(state)
-        
-    if state[8] == 3:
+    elif state[8] == 3:
         state = transition.inner_to_free(state)
      
     # update the state based on the meta-state
