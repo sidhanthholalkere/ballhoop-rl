@@ -4,7 +4,6 @@ import numpy as np
 
 # h is the timestep in seconds
 h = 0.001
-
 # Physical Parameters
 R_oring = 1.5e-3 # diameter of the outer ring
 d_orings = 14.7e-3 # distance between the orings
