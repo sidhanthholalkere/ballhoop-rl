@@ -111,7 +111,7 @@ def update_inner(state, t_i):
 
     return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out])
 
-def update_all(state, t_i, debug=False):
+def update_all(state, t_i, double_hoop=False,debug=False):
     '''
     Updates the state anywhere
     '''
@@ -121,10 +121,12 @@ def update_all(state, t_i, debug=False):
         
     elif state[8] == 2:
         state = transition.free_to_outer(state, debug=debug)
-        try:
-            state = transition.free_to_inner(state)
-        except AssertionError:
-            pass
+        
+        if double_hoop:
+            try:
+                state = transition.free_to_inner(state)
+            except AssertionError:
+                pass
         
     elif state[8] == 3:
         state = transition.inner_to_free(state)
@@ -136,7 +138,8 @@ def update_all(state, t_i, debug=False):
     if state[8] == 2:
         state = update_free(state, t_i)
         
-    if state[8] == 3:
+    if double_hoop and state[8] == 3:    
         state = update_inner(state, t_i)
         
     return state
+    

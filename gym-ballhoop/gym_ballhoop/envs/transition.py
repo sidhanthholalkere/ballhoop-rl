@@ -1,9 +1,6 @@
 import params
 import numpy as np
 
-# state is a 9-d vector
-# it goes th Dth psi Dpsi r Dr phi Dphi mode
-
 def outer_to_free(state, eps=0.3, debug=False):
 
     assert state[8] == 1
@@ -25,7 +22,6 @@ def outer_to_free(state, eps=0.3, debug=False):
 
     if gamma > eps:
         
-        print('transitioning OUTER to FREE')
         th_out = th
         Dth_out = Dth
         psi_out = psi
@@ -60,7 +56,6 @@ def free_to_outer(state, eps=1e-5, debug=False):
         print(f'free_to_outer_gamma: {gamma}')
 
     if gamma > eps:
-        print('transitioned from FREE to OUTER')
         th_out = th
         Dth_out = Dth
         psi_out = psi
