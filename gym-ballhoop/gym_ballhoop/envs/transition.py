@@ -1,4 +1,4 @@
-import params
+from gym_ballhoop.envs import params
 import numpy as np
 
 def outer_to_free(state, eps=0.3, debug=False):

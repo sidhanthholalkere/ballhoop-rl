@@ -1,6 +1,5 @@
-import params
 import numpy as np
-import transition
+from gym_ballhoop.envs import params, transition
 
 # state is a 9-d vector
 # it goes th Dth psi Dpsi r Dr phi Dphi mode
@@ -142,4 +141,3 @@ def update_all(state, t_i, double_hoop=False,debug=False):
         state = update_inner(state, t_i)
         
     return state
-    
