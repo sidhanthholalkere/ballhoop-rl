@@ -6,10 +6,9 @@ import os
 import six
 import sys
 
-if "Apple" in sys.version:
-    if 'DYLD_FALLBACK_LIBRARY_PATH' in os.environ:
-        os.environ['DYLD_FALLBACK_LIBRARY_PATH'] += ':/usr/lib'
-        # (JDS 2016/04/15): avoid bug on Anaconda 2.3.0 / Yosemite
+if "Apple" in sys.version and 'DYLD_FALLBACK_LIBRARY_PATH' in os.environ:
+    os.environ['DYLD_FALLBACK_LIBRARY_PATH'] += ':/usr/lib'
+    # (JDS 2016/04/15): avoid bug on Anaconda 2.3.0 / Yosemite
 
 from gym import error
 
@@ -177,6 +176,9 @@ class Attr(object):
     def enable(self):
         raise NotImplementedError
     def disable(self):
+        """
+        I'm adding this comment because pylint yelled at me
+        """
         pass
 
 class Transform(Attr):
