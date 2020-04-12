@@ -1,6 +1,7 @@
 import gym
 import numpy as np
 from gym_ballhoop.envs import update, params, transition, rendering
+from gym import spaces
 
 class BallHoopEnv(gym.Env):
     """
@@ -14,16 +15,28 @@ class BallHoopEnv(gym.Env):
 
         self.viewer = None
         self.state = None
+        self.reached_top = False
+        self.passed_horiz_half = False
+        self.passed_vert_half = False
+
+        self.action_space = spaces.Box(low=-2, high=2, dtype=np.float64)
 
     def step(self, action):
         self.state = update.update_all(self.state, action)
 
-        done = False
-
-        psi = self.state[2]
+        psi = np.radians(self.state[2]) - np.pi/2
         r = self.state[4]
 
-        reward = r * (np.sin(psi) + 1)
+        reward = (r * (np.sin(psi) + 1))**3
+
+        reward += params.Ro - params.Rb - r
+
+        if np.sin(psi) > 0:
+            self.passed_vert_half = self.passed_vert_half or True
+
+        done = False
+        if self.passed_vert_half and np.abs(psi - np.pi/2) < 0.1:
+            done = True
 
         return self.state, reward, done, {}
         
