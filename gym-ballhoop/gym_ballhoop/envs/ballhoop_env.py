@@ -11,42 +11,50 @@ class BallHoopEnv(gym.Env):
     """
     metadata = {
         'render.modes': ['human', 'rgb_array'],
-        'video.frames_per_second' : 50,
+        'video.frames_per_second' : 1000,
         }
 
     def __init__(self):
 
         self.viewer = None
         self.state = None
-        self.reached_top = False
-        self.passed_horiz_half = False
-        self.passed_vert_half = False
 
-        self.action_space = spaces.Box(low=np.array([-1.0]), high=np.array([1.0]), dtype=np.float64)
-        self.observation_space = spaces.Box(low=np.array([-1000, -1000, -1000, -1000, -0.0001, -1000, -1000, -1000, 0]), high=np.array([1000, 1000, 1000, 1000, params.Ro + 0.001, 1000, 1000, 1000, 2]), dtype=np.float64)
+        self.action_space = spaces.Box(low=np.array([-0.3]), high=np.array([0.3]), dtype=np.float64)
+        self.observation_space = spaces.Box(low=np.array([-1000, -1000, -1000, -1000, -0.0001, -1000, -1000, -1000, 0]), 
+                                            high=np.array([1000, 1000, 1000, 1000, params.Ro + 0.001, 1000, 1000, 1000, 2]), 
+                                            dtype=np.float64)
+
+        self.reached_top = False
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
     def step(self, action):
-        for _ in range(20):
-            self.state = update.update_all(self.state, action)     
-        psi = np.radians(self.state[2]) - np.pi/2
+        """
+        One step corresponds to 1 ms.
+        """
+        
+        self.state = np.asarray(update.update_all(self.state, action), dtype=np.float64)
+
+        psi = self.state[2] - np.pi/2
         r = self.state[4]
 
-        reward = (r * (np.sin(psi) + 1))**3
+        contact_penalty = -5.0 * (1 - r/(params.Ro - params.Rb))
+        normalized_y = r * np.sin(psi) / (params.Ro - params.Rb)
+        height_reward = (1 + normalized_y)**4
 
-        reward += params.Ro - params.Rb - r
-
-        if np.sin(psi) > 0:
-            self.passed_vert_half = True
+        reward = contact_penalty + height_reward
+        
+        if np.abs(1 - normalized_y) < 0.1:
+            self.reached_top = True
+            reward += 10
 
         done = False
-        if self.passed_vert_half and np.abs(psi - np.pi/2) < 0.1:
+        if self.reached_top and np.abs(-1 - normalized_y) < 0.1:
             done = True
         
-        return np.asarray(self.state), reward, done, {}
+        return np.asarray(self.state, dtype=np.float64), reward, done, {}
         
     def reset(self):
         """
