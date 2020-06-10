@@ -21,12 +21,13 @@ class BallHoopEnv(gym.Env):
         self.state = None
 
         self.action_space = spaces.Box(low=np.array([-0.7]), high=np.array([0.7]), dtype=np.float64)
-        self.observation_space = spaces.Box(low=np.array([-1000, -1000, -1000, -1000, -0.0001, -1000, -1000, -1000, 0]), 
-                                            high=np.array([1000, 1000, 1000, 1000, params.Ro + 0.001, 1000, 1000, 1000, 2]), 
+        self.observation_space = spaces.Box(low=np.array([-1000, -1000, -1000, -1000, -0.0001, -1000, -1000, -1000, 0, 1000]), 
+                                            high=np.array([1000, 1000, 1000, 1000, params.Ro + 0.001, 1000, 1000, 1000, 2, 0]), 
                                             dtype=np.float64)
 
         self.reached_top = False
         self.finished_loop = False
+        self.time = 0.0
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -38,6 +39,9 @@ class BallHoopEnv(gym.Env):
         Expects action to be a scalar between -1 and 1
         """
         assert np.abs(action) <= 1.0
+
+        self.time += 0.2
+        self.state[9] = self.time
 
         if self.normalize_actions:
             action *= 0.7
@@ -73,7 +77,7 @@ class BallHoopEnv(gym.Env):
         done = self.finished_loop
 
         if self.finished_loop:
-            reward = (-np.abs(dpsi) + 10.0) / 50.0
+            reward = (-np.abs(dpsi) + 10.0) / 500.0
             done = np.abs(dpsi) < 5
         
         return np.asarray(self.state, dtype=np.float64), reward, done, {}
@@ -82,9 +86,11 @@ class BallHoopEnv(gym.Env):
         """
         Resets the environment
         """
-        self.state = np.asarray([0, 0, 0, 0, params.Ro - params.Rb, 0, 0, 0, 1], dtype=np.float64)
+        self.state = np.asarray([0, 0, 0, 0, params.Ro - params.Rb, 0, 0, 0, 1, 0], dtype=np.float64)
         self.reached_top = False
         self.finished_loop = False
+        self.time = 0.0
+
         return np.asarray(self.state)
 
     def render(self, mode='human'):

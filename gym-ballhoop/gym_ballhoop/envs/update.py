@@ -20,6 +20,7 @@ def update_outer(state, t_i):
     phi = state[6]
     Dphi = state[7]
     mode = state[8]
+    time = state[9]
 
     th_dot = Dth
     Dth_dot = params.ath1 * Dth + params.ath2 * np.sin(psi) + params.ath3 * Dpsi + params.bth * t_i
@@ -36,7 +37,7 @@ def update_outer(state, t_i):
     Dphi_out = (Dth_out - Dpsi_out) * (params.Ro / params.Rb)
     mode_out = 1
 
-    return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out], dtype=np.float64)
+    return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out, time], dtype=np.float64)
 
 def update_free(state, t_i):
     '''
@@ -54,6 +55,7 @@ def update_free(state, t_i):
     phi = state[6]
     Dphi = state[7]
     mode = state[8]
+    time = state[9]
 
     th_dot = Dth
     Dth_dot = params.ath1 * Dth + params.bth * t_i
@@ -74,7 +76,7 @@ def update_free(state, t_i):
     Dpsi_out = Dpsi + params.h * Dpsi_dot
     mode_out = 2
 
-    return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out], dtype=np.float64)
+    return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out, time], dtype=np.float64)
 
 def update_inner(state, t_i):
     '''
@@ -92,6 +94,7 @@ def update_inner(state, t_i):
     phi = state[6]
     Dphi = state[7]
     mode = state[8]
+    time = state[9]
 
     th_dot = Dth
     Dth_dot = params.ath1 * Dth + params.bth * t_i
@@ -108,7 +111,7 @@ def update_inner(state, t_i):
     Dphi_out = -(Dth_out - Dpsi_out) * (params.Rui / params.Rb)
     mode_out = 3
 
-    return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out], dtype=np.float64)
+    return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out, time], dtype=np.float64)
 
 def update_all(state, t_i, double_hoop=False,debug=False):
     '''
