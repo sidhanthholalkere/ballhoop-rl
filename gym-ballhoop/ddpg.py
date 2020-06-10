@@ -1,4 +1,5 @@
 # COPIED FROM https://github.com/ikostrikov/pytorch-ddpg-naf
+import random
 
 import numpy as np
 import math
@@ -62,10 +63,13 @@ class DDPGAgent:
         self.replay_buffer = BasicBuffer(buffer_maxlen)        
         self.noise = OUNoise(self.env.action_space)
         
-    def get_action(self, obs):
+    def get_action(self, obs, eps=0.1):
+        val = random.random()
         state = torch.FloatTensor(obs).unsqueeze(0).to(self.device)
         action = self.actor.forward(state)
         action = action.squeeze(0).cpu().detach().numpy()
+        if val <= eps:
+            return np.random.uniform(-1.0, 1.0, size=action.shape)
 
         return action
     
@@ -326,9 +330,14 @@ def mini_batch_train(env, agent, max_episodes, max_steps, batch_size):
     for episode in range(max_episodes):
         state = env.reset()
         episode_reward = 0
+
+        eps = 0.1
+
+        if (max_episodes - episode) // max_episodes <=  0.1:
+            eps = 0.0
         
         for step in range(max_steps):
-            action = agent.get_action(state)
+            action = agent.get_action(state, eps=eps)
             next_state, reward, done, _ = env.step(action)
             agent.replay_buffer.push(state, action, reward, next_state, done)
             episode_reward += reward
