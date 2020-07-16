@@ -2,7 +2,26 @@ from gym_ballhoop.envs import params
 import numpy as np
 
 def outer_to_free(state, eps=0.35, debug=False):
+    """
+    Calculates whether the environment should transition from
+    the ball being on the outer hoop to in free fall
 
+    Parameters
+    ----------
+    state : np.ndarray
+        The environment's state
+
+    eps : float
+        The threshold for the transition
+
+    debug : bool
+        Prints auxilliary information
+
+    Returns
+    -------
+    state : np.ndarray
+        The environment's state
+    """
     assert state[8] == 1
 
     th = state[0]
@@ -37,7 +56,26 @@ def outer_to_free(state, eps=0.35, debug=False):
     return state
         
 def free_to_outer(state, eps=1e-5, debug=False):
+    """
+    Calculates whether the environment should transition from
+    the ball being in free fall to the outer hoop
 
+    Parameters
+    ----------
+    state : np.ndarray
+        The environment's state
+
+    eps : float
+        The threshold for the transition
+
+    debug : bool
+        Prints auxilliary information
+
+    Returns
+    -------
+    state : np.ndarray
+        The environment's state
+    """
     assert state[8] == 2
 
     th = state[0]
@@ -71,7 +109,23 @@ def free_to_outer(state, eps=1e-5, debug=False):
     return state
 
 def inner_to_free(state, eps=0.):
+    """
+    Calculates whether the environment should transition from
+    the inner hoop to free fall
 
+    Parameters
+    ----------
+    state : np.ndarray
+        The environment's state
+
+    eps : float
+        The threshold for the transition
+
+    Returns
+    -------
+    state : np.ndarray
+        The environment's state
+    """
     assert state[8] == 3
 
     th = state[0]
@@ -101,7 +155,23 @@ def inner_to_free(state, eps=0.):
     return state
 
 def free_to_inner(state, eps=0.):
+    """
+    Calculates whether the environment should transition from
+    the ball being in free fall to the inner hooop
 
+    Parameters
+    ----------
+    state : np.ndarray
+        The environment's state
+
+    eps : float
+        The threshold for the transition
+
+    Returns
+    -------
+    state : np.ndarray
+        The environment's state
+    """
     assert state[8] == 2
 
     th = state[0]

@@ -5,10 +5,20 @@ from gym_ballhoop.envs import params, transition
 # it goes th Dth psi Dpsi r Dr phi Dphi mode
 
 def update_outer(state, t_i):
-    '''
-    Update the state of the environment given a torque t_i
-    while the ball is rolling on the outer hoop
-    '''
+    """
+    Updates the environment's state when it is rolling
+    on the outer hoop
+
+    Parameters
+    ----------
+    t_i : float
+        Un-normalized torque applied to the hoop
+
+    Returns
+    -------
+    np.ndarray
+        The state of the environment after applying the torque
+    """
     assert state[8] == 1
 
     th = state[0]
@@ -20,7 +30,7 @@ def update_outer(state, t_i):
     phi = state[6]
     Dphi = state[7]
     mode = state[8]
-    time = state[9]
+    #time = state[9]
 
     th_dot = Dth
     Dth_dot = params.ath1 * Dth + params.ath2 * np.sin(psi) + params.ath3 * Dpsi + params.bth * t_i
@@ -37,13 +47,23 @@ def update_outer(state, t_i):
     Dphi_out = (Dth_out - Dpsi_out) * (params.Ro / params.Rb)
     mode_out = 1
 
-    return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out, time], dtype=np.float64)
+    return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out], dtype=np.float64)
 
 def update_free(state, t_i):
-    '''
-    Update the state of the environment given a torque t_i
-    while the ball is in freefall
-    '''
+    """
+    Updates the environment's state when it is in
+    free fall
+
+    Parameters
+    ----------
+    t_i : float
+        Un-normalized torque applied to the hoop
+
+    Returns
+    -------
+    np.ndarray
+        The state of the environment after applying the torque
+    """
     assert state[8] == 2
 
     th = state[0]
@@ -55,7 +75,7 @@ def update_free(state, t_i):
     phi = state[6]
     Dphi = state[7]
     mode = state[8]
-    time = state[9]
+    #time = state[9]
 
     th_dot = Dth
     Dth_dot = params.ath1 * Dth + params.bth * t_i
@@ -76,13 +96,23 @@ def update_free(state, t_i):
     Dpsi_out = Dpsi + params.h * Dpsi_dot
     mode_out = 2
 
-    return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out, time], dtype=np.float64)
+    return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out], dtype=np.float64)
 
 def update_inner(state, t_i):
-    '''
-    Update the state of the environment given a torque t_i
-    while the ball is on the inner hoop
-    '''
+    """
+    Updates the environment's state when it is rolling
+    on the inner hoop
+
+    Parameters
+    ----------
+    t_i : float
+        Un-normalized torque applied to the hoop
+
+    Returns
+    -------
+    np.ndarray
+        The state of the environment after applying the torque
+    """
     assert state[8] == 3
 
     th = state[0]
@@ -94,7 +124,7 @@ def update_inner(state, t_i):
     phi = state[6]
     Dphi = state[7]
     mode = state[8]
-    time = state[9]
+    #time = state[9]
 
     th_dot = Dth
     Dth_dot = params.ath1 * Dth + params.bth * t_i
@@ -111,12 +141,29 @@ def update_inner(state, t_i):
     Dphi_out = -(Dth_out - Dpsi_out) * (params.Rui / params.Rb)
     mode_out = 3
 
-    return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out, time], dtype=np.float64)
+    return np.asarray([th_out, Dth_out, psi_out, Dpsi_out, r_out, Dr_out, phi_out, Dphi_out, mode_out], dtype=np.float64)
 
 def update_all(state, t_i, double_hoop=False,debug=False):
-    '''
-    Updates the state anywhere
-    '''
+    """
+    Updates the environment's state no matter what and
+    handles transitions
+
+    Parameters
+    ----------
+    t_i : float
+        Un-normalized torque applied to the hoop
+
+    double_hoop : bool
+        Whether we want the inner hoop
+
+    debug : bool
+        Whether to print auxilliary information
+
+    Returns
+    -------
+    state : np.ndarray
+        The state of the environment after applying the torque
+    """
     # check to see if the state should transition
     if state[8] == 1:
         state = transition.outer_to_free(state, debug=debug)

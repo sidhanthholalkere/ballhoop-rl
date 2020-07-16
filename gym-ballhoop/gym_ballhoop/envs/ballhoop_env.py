@@ -3,11 +3,12 @@ from gym import spaces
 from gym.utils import seeding
 from gym.envs.classic_control import rendering
 import numpy as np
-from gym_ballhoop.envs import update, params, transition
+from gym_ballhoop.envs import update, params, transition, reward_utils
 
 class BallHoopEnv(gym.Env):
     """
-    A ball and hoop environment.
+    A simulation of the ball in double hoop introduced by Martin
+    Gurtner and Jiri Zemanek in https://arxiv.org/pdf/1706.07333.pdf
     """
     metadata = {
         'render.modes': ['human', 'rgb_array'],
@@ -21,27 +22,56 @@ class BallHoopEnv(gym.Env):
         self.state = None
 
         self.action_space = spaces.Box(low=np.array([-0.7]), high=np.array([0.7]), dtype=np.float64)
-        self.observation_space = spaces.Box(low=np.array([-1000, -1000, -1000, -1000, -0.0001, -1000, -1000, -1000, 0, 1000]), 
-                                            high=np.array([1000, 1000, 1000, 1000, params.Ro + 0.001, 1000, 1000, 1000, 2, 0]), 
+        self.observation_space = spaces.Box(low=np.array([-1, -1, -1000, -1, -1, -1000, 0, -100, -1, -1, -1000]), 
+                                            high=np.array([1, 1, 1000, 1, 1, 1000, params.Ro, 100, 1, 1, 1000]), 
                                             dtype=np.float64)
 
         self.reached_top = False
         self.finished_loop = False
         self.time = 0.0
+        self.stage = 0
 
     def seed(self, seed=None):
+        """
+        Sets the random seed for the model
+
+        Parameters
+        ----------
+        seed : 
+
+        Returns
+        -------
+        List[]
+
+        """
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def step(self, action, verbose=False):
+    def step(self, action):
         """
-        One step corresponds to 20 ms.
-        Expects action to be a scalar between -1 and 1
+        Calculates the state of the environment after the given action
+
+        Parameters
+        ----------
+        action : Float
+            Describes the torque value applied to the hoop, normalized
+            to [-1, 1]
+        
+        Returns
+        -------
+        observation : np.ndarray
+            Observation of the state as described in _get_obs()
+
+        reward : float
+            Reward for taking the inputted action
+
+        done : bool
+            Returns whether the environment has completed the task
         """
         assert np.abs(action) <= 1.0
 
         self.time += 0.2
-        self.state[9] = self.time
+        #self.state[9] = self.time
 
         if self.normalize_actions:
             action *= 0.7
@@ -61,44 +91,82 @@ class BallHoopEnv(gym.Env):
                 self.reached_top = True
                 reward += 10
 
-            if verbose:
-                print(f'norm_y: {normalized_y}')
-                print(self.reached_top)
-
             if self.reached_top and normalized_y + 1 < 0.05 and not self.finished_loop:
                 self.finished_loop = True
                 reward += 10
 
-        contact_penalty = -5.0 * (1 - r/(params.Ro - params.Rb))
-        height_reward = (1 + normalized_y)**4
-
-        reward = contact_penalty + height_reward
-
         done = self.finished_loop
+        reward = reward_utils.before_loop_reward(self.state)
 
-        if self.finished_loop:
-            reward = (-np.abs(dpsi) + 10.0) / 500.0
-            done = np.abs(dpsi) < 5
+        if self.finished_loop or self.stage == 1:
+            reward = reward_utils.after_loop_reward(self.state)
+            done = np.abs(dpsi) < 0.3
         
-        return np.asarray(self.state, dtype=np.float64), reward, done, {}
+        return self._get_obs(self.state), reward, done, {}
+
+    def _get_obs(self, state):
+        """
+        Returns an observation based on the environment's state
+
+        Parameters
+        ----------
+        state : np.ndarray
+            Describes the state of the environment
+
+        Returns
+        -------
+        np.ndarray
+            The observation based on the environment's state
+        """
+        th = state[0]
+        Dth = state[1]
+        psi = state[2]
+        Dpsi = state[3]
+        r = state[4]
+        Dr = state[5]
+        phi = state[6]
+        Dphi = state[7]
+        mode = state[8]
+
+        return np.array([np.cos(th), np.sin(th), Dth, np.cos(psi), np.sin(psi), Dpsi,
+                         r, Dr, np.cos(phi), np.sin(phi), Dpsi])
         
     def reset(self):
         """
         Resets the environment
+
+        Returns
+        -------
+        np.ndarray
+            The observation for the environment's state
+            after resetting it
         """
-        self.state = np.asarray([0, 0, 0, 0, params.Ro - params.Rb, 0, 0, 0, 1, 0], dtype=np.float64)
+        self.state = np.asarray([0, 0, 0, 0, params.Ro - params.Rb, 0, 0, 0, 1], dtype=np.float64)
         self.reached_top = False
         self.finished_loop = False
         self.time = 0.0
 
-        return np.asarray(self.state)
+        if self.stage == 1:
+            self.state = [-2.23720303e+01, -1.28929611e+02, -6.66802761e+00, -4.28627357e+01,
+                 9.02342098e-02,  0.00000000e+00, -1.51823555e+02, -8.32079590e+02,
+                 1.00000000e+00]
+
+        return self._get_obs(self.state)
 
     def render(self, mode='human'):
         """
-        Renders the environment, which consiste of the outer hoop, ball, and a marker
-        that indicates the angle of the outer hoop
-        """
+        Renders the environment, which consists of the outer hoop, 
+        ball, and a marker that indicates the angle of the outer hoop
 
+        Parameters
+        ----------
+        mode : Str
+            Describes the rendering mode
+
+        Returns
+        -------
+
+        """
         size = 500
         # we want 225 = Ro
         scale = 225. / params.Ro
@@ -148,6 +216,9 @@ class BallHoopEnv(gym.Env):
         return self.viewer.render(return_rgb_array = mode=='rgb_array')
 
     def close(self):
+        """
+        Closes the viewer
+        """
         if self.viewer:
             self.viewer.close()
             self.viewer = None
